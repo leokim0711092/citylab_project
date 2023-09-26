@@ -9,6 +9,7 @@
 #include <rclcpp/rclcpp.hpp>
 #include <sensor_msgs/msg/laser_scan.hpp>
 #include <geometry_msgs/msg/twist.hpp>
+#include <cmath>
 
 class Turtle_bot_mv: public rclcpp::Node{
 
@@ -28,7 +29,9 @@ class Turtle_bot_mv: public rclcpp::Node{
                 }
             }
             vel.linear.x = 0.1;
-            rad = 
+            rad = angle/720.0*M_PI;
+            vel.angular.z = rad*0.5;
+            Pub->publish(vel);
             r.sleep();
         }
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr Pub;
