@@ -39,52 +39,45 @@ class Turtle_bot_mv: public rclcpp::Node{
             size_t angle = 0;
             bool ck =true;
             bool rg_ck = true;
+            bool middle_ck =true;
+            const float sf = 0.45;
             for(size_t i=0; i< msg->ranges.size();i++){
-
-                    if (msg->ranges[i] > 0.35 && rg_ck) {
+                    // std::cout << "msg  "<<i <<":" << msg->ranges[i] << std::endl;
+                    if (msg->ranges[i] > sf && rg_ck) {
                         
-                        if(rc< msg->ranges[i] && msg->ranges[i] != INFINITY ){
+                        if(rc< msg->ranges[i] && msg->ranges[i] != INFINITY){
                             rc = msg->ranges[i];
-                            std::cout << i <<"1  :" << rc << std::endl;
+                            std::cout << "1  "<<i <<":" << rc << std::endl;
                             angle = i;
                         }
 
-                    }else if ( msg->ranges[i] <= 0.35|| !rg_ck) {
+                    }else if ( msg->ranges[i] <= sf || !rg_ck) {
                         rg_ck = false;
                         if (angle<360 && i<360 && rc< msg->ranges[i] && msg->ranges[i] != INFINITY) {
                             rc = msg->ranges[i];
-                            std::cout << i <<"2  :" << rc << std::endl;
-                            angle = i;
+                            std::cout << "2  "<<i <<":" << rc << std::endl;
+                            if(middle_ck) angle = i;
+                            else if (!middle_ck) angle = i -25;
+                    
                             ck = false;
-                        }else if (angle>359 && i>359 && ck && rc< msg->ranges[i] && msg->ranges[i] != INFINITY) {
+                            if(i<360 && i> 340 && middle_ck){
+                                    int j=0;
+                                    while (j<180) {
+                                        if (msg->ranges[360+j] <= sf) {
+                                                middle_ck = false;
+                                                angle = i -25;
+                                                break;
+                                        }
+                                        j++;
+                                    }
+                            }
+                
+                        }else if (angle>359 && i>359 && i<720&& ck && rc< msg->ranges[i] && msg->ranges[i] != INFINITY) {
                             rc = msg->ranges[i];
-                            std::cout << i <<"3  :" << rc << std::endl;
+                            std::cout << "3  "<<i <<":" << rc << std::endl;
                             angle = i;
                         }
                     }
-                    // if (msg->ranges[719-i] > 0.25 && rg_ck) {
-                        
-                    //     if(rc< msg->ranges[719-i] && msg->ranges[719-i] != INFINITY ){
-                    //         rc = msg->ranges[719-i];
-                    //         std::cout << 719-i <<"1  :" << rc << std::endl;
-                    //         angle = 719-i;
-                    //     }
-
-                    // }else if ( msg->ranges[719-i] <= 0.25 || !rg_ck) {
-                    //     rg_ck = false;
-                    //     if (angle<360 && 719-i<360 && rc< msg->ranges[719-i] && msg->ranges[719-i] != INFINITY) {
-                    //         rc = msg->ranges[719-i];
-                    //         std::cout << 719-i <<"2  :" << rc << std::endl;
-                    //         angle = 719-i;
-                    //         ck = false;
-                    //     }else if (angle>359 && 719-i>359 && ck && rc< msg->ranges[719-i] && msg->ranges[719-i] != INFINITY) {
-                    //         rc = msg->ranges[719-i];
-                    //         std::cout << 719-i <<"3  :" << rc << std::endl;
-                    //         angle = 719-i;
-                    //     }
-                    // }
-                
-                // std::cout << i <<":" << msg->ranges[i] << std::endl;
             }
             direction_ = M_PI/2 - (angle/719.0)*M_PI;
             
