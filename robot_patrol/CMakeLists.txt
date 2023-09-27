@@ -33,7 +33,7 @@ if(BUILD_TESTING)
 endif()
 
 add_executable(Move_turtlebot_node src/patrol.cpp)
-ament_target_dependencies(Move_turtlebot_node rclcpp sensor_msgs geometry_msgsh)
+ament_target_dependencies(Move_turtlebot_node rclcpp sensor_msgs geometry_msgs)
 
 install(TARGETS
    Move_turtlebot_node
