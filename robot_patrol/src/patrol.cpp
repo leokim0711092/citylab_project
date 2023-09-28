@@ -36,7 +36,7 @@ class Turtle_bot_mv: public rclcpp::Node{
 
             Pub = this ->create_publisher<geometry_msgs::msg::Twist>("cmd_vel",10);
             Sub = this-> create_subscription<sensor_msgs::msg::LaserScan>("scan",10,std::bind(&Turtle_bot_mv::turtle_callback,this, std::placeholders::_1),sub1_);    
-            timer = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&Turtle_bot_mv::timer_callback,this),callback_group_2);
+            timer = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&Turtle_bot_mv::timer_callback,this),callback_group_1);
         }
     private:
         void turtle_callback(const sensor_msgs::msg::LaserScan::SharedPtr msg){
@@ -45,7 +45,7 @@ class Turtle_bot_mv: public rclcpp::Node{
             bool rg_ck = false;
             std::vector<int> str;
             // bool middle_ck =true;
-            const float sf = 0.6;
+            const float sf = 0.5;
             for(int i= 719 ; i >= 0;i--){
                 std::cout << i <<": "<< msg->ranges[i] << std::endl; 
                     if (msg->ranges[i] > sf || rg_ck) {
@@ -79,15 +79,15 @@ class Turtle_bot_mv: public rclcpp::Node{
                     }else if (rcrd[j] == 0 && j!= 719) record_len++; 
                     else if (rcrd[j] ==1 && record_len > 0) {
                         len_number_store[record_hole_amount].push_back(j-1);
-                        // std::cout <<"record_amout: " << record_hole_amount << std::endl;
-                        // std::cout << "j: " << j-1<< std::endl;
+                        std::cout <<"record_amout: " << record_hole_amount << std::endl;
+                        std::cout << "j: " << j-1<< std::endl;
                         record_hole_amount++;
                         record_len = 0;
                     }else if (j == 719 && record_len >0) {
                         len_number_store[record_hole_amount].push_back(j);
                         record_len++;
-                        // std::cout <<"record_amout: " << record_hole_amount << std::endl;
-                        // std::cout << "j: " << j<< std::endl;
+                        std::cout <<"record_amout: " << record_hole_amount << std::endl;
+                        std::cout << "j: " << j<< std::endl;
                         record_hole_amount++;
                         record_len = 0;
                     }
@@ -112,21 +112,24 @@ class Turtle_bot_mv: public rclcpp::Node{
             ray_len ang;
             int vec_number =0;
                 while(!len_store[sz].empty()){
-
+                    std::cout << "hole size: "<<hole_size <<" sz: "<< sz <<std::endl;
                     hole_size = len_store[sz][1] -len_store[sz][0];
                     if(hole_size_final < hole_size){
                         hole_size_final = hole_size;
                         vec_number = sz;
                     }
-                    std::cout << "hole size: "<<hole_size_final <<" sz: "<< vec_number <<std::endl;
+                    std::cout << "hole size final: "<<hole_size_final <<" vec: "<< vec_number <<std::endl;
                     sz++;
                     ang.fst = len_store[vec_number][0]; 
                     ang.lst = len_store[vec_number][1];
                 }
             return ang;
         }
+
         int acc_direction(ray_len ang, const sensor_msgs::msg::LaserScan::SharedPtr msg){
             int angle = 0;
+            int ang_compensate =0;
+            ang_compensate = (ang.fst + ang.lst)/2;
             float rr = msg->range_min;
             for(int i = ang.fst; i<= ang.lst;i++){        
                 if(rr< msg->ranges[i] && msg->ranges[i] != INFINITY){
@@ -134,6 +137,8 @@ class Turtle_bot_mv: public rclcpp::Node{
                     angle = i;
                 }
             }
+            if((angle-ang.fst)<(ang.lst-ang.fst/4) || (ang.lst-angle)<(ang.lst-ang.fst/4)) angle = (angle + ang_compensate)/2;
+        
             return angle;
         }
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr Pub;
