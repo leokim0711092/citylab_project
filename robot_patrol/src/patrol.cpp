@@ -37,9 +37,8 @@ class Turtle_bot_mv: public rclcpp::Node{
         void turtle_callback(const sensor_msgs::msg::LaserScan::SharedPtr msg){
             rc = msg->range_min;
             size_t angle = 0;
-            bool ck =true;
             bool rg_ck = true;
-            const float safe_dist = 0.4;
+            const float safe_dist = 0.47;
             for(size_t i=0; i< msg->ranges.size();i++){
 
                     if (msg->ranges[719-i] > safe_dist && rg_ck) {
@@ -50,14 +49,16 @@ class Turtle_bot_mv: public rclcpp::Node{
                             angle = 719-i;
                         }
 
-                    }else if ( msg->ranges[719-i] <= safe_dist || !rg_ck) {
+                    }
+                    else if ( msg->ranges[719-i] <= safe_dist || !rg_ck) {
+                    // else if ( msg->range_min <= safe_dist || !rg_ck) {
                         rg_ck = false;
                         if (angle<360 && 719-i<360 && rc< msg->ranges[719-i] && msg->ranges[719-i] != INFINITY) {
                             rc = msg->ranges[719-i];
                             std::cout << i <<"2  :" << rc << std::endl;
                             angle = 719-i;
-                            ck = false;
-                        }else if (angle>359 && 719-i>359 && ck && rc< msg->ranges[719-i] && msg->ranges[719-i] != INFINITY) {
+
+                        }else if (angle>359 && 719-i>359 && rc< msg->ranges[719-i] && msg->ranges[719-i] != INFINITY) {
                             rc = msg->ranges[719-i];
                             std::cout << i <<"3  :" << rc << std::endl;
                             angle = 719-i;
