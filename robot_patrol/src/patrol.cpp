@@ -16,6 +16,11 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <cmath>
 
+struct ray_len{
+    int fst;
+    int lst;
+};
+
 class Turtle_bot_mv: public rclcpp::Node{
 
     public:
@@ -40,14 +45,13 @@ class Turtle_bot_mv: public rclcpp::Node{
             bool rg_ck = false;
             std::vector<int> str;
             // bool middle_ck =true;
-            const float sf = 0.5;
+            const float sf = 0.6;
             for(int i= 719 ; i >= 0;i--){
                 std::cout << i <<": "<< msg->ranges[i] << std::endl; 
                     if (msg->ranges[i] > sf || rg_ck) {
                         
                         if(rc< msg->ranges[i] && msg->ranges[i] != INFINITY){
                             rc = msg->ranges[i];
-                            // std::cout << "1  "<<i <<":" << rc << std::endl;
                             angle = i;
                         }
 
@@ -63,34 +67,35 @@ class Turtle_bot_mv: public rclcpp::Node{
                 for(size_t i=0;i<str.size();i++){
                     rcrd[str[i]] = 1;
                 }
-               std::vector<int> len_number_store[10]; //record the number of each start and end
+               std::vector<int> len_number_store[720]; //record the number of each start and end
                int record_len = 0; // record the length
                int record_hole_amount =0;
                // know the direction
                for(int j=0;j<720;j++){
                 
-                    if(rcrd[j] == 0 && record_len ==0){
+                    if(rcrd[j] == 0 && record_len ==0 && j!= 719){
                         len_number_store[record_hole_amount].push_back(j);
                         record_len++;
                     }else if (rcrd[j] == 0 && j!= 719) record_len++; 
                     else if (rcrd[j] ==1 && record_len > 0) {
                         len_number_store[record_hole_amount].push_back(j-1);
-                        std::cout <<"record_amout: " << record_hole_amount << std::endl;
-                        std::cout << "j: " << j-1<< std::endl;
+                        // std::cout <<"record_amout: " << record_hole_amount << std::endl;
+                        // std::cout << "j: " << j-1<< std::endl;
                         record_hole_amount++;
                         record_len = 0;
                     }else if (j == 719 && record_len >0) {
                         len_number_store[record_hole_amount].push_back(j);
                         record_len++;
-                        std::cout <<"record_amout: " << record_hole_amount << std::endl;
-                        std::cout << "j: " << j<< std::endl;
+                        // std::cout <<"record_amout: " << record_hole_amount << std::endl;
+                        // std::cout << "j: " << j<< std::endl;
                         record_hole_amount++;
                         record_len = 0;
                     }
                }
-            //    std::cout <<"record_hole_amount:  "<< record_hole_amount<<" :"<<len_number_store[record_hole_amount][0] <<","<< len_number_store[record_hole_amount][1] <<std::endl;
-                angle = Turtle_bot_mv::direction(len_number_store);
-                std::cout << "angle: "<< angle << std::endl;
+               ray_len ang;
+               ang = Turtle_bot_mv::direction(len_number_store);
+               angle = acc_direction(ang, msg);  
+               std::cout << "angle: "<< angle << std::endl;
             }
             direction_ = -M_PI/2 + (angle/719.0)*M_PI;
         }
@@ -98,25 +103,38 @@ class Turtle_bot_mv: public rclcpp::Node{
             vel.linear.x = 0.1;
             vel.angular.z = direction_*0.5;
             RCLCPP_INFO(this->get_logger(),"%f",vel.angular.z);
-            // Pub->publish(vel);
+            Pub->publish(vel);
         }
-        int direction(std::vector<int> len_store[10]){
+        ray_len direction(std::vector<int> len_store[10]){
             int sz=0;
-            int hole_size=0;
-            int ang = 0;
+            int hole_size_final=0;
+            int hole_size =0;
+            ray_len ang;
             int vec_number =0;
-                while(!len_store[++sz].empty()){
+                while(!len_store[sz].empty()){
 
-                    hole_size = len_store[sz-1][1] -len_store[sz-1][0];
-                    if(hole_size < len_store[sz][1] -len_store[sz][0]){
-                        hole_size = len_store[sz][1] -len_store[sz][0];
+                    hole_size = len_store[sz][1] -len_store[sz][0];
+                    if(hole_size_final < hole_size){
+                        hole_size_final = hole_size;
                         vec_number = sz;
                     }
-                    std::cout << "hole size: "<<hole_size <<" sz: "<< sz <<std::endl;
-
-                    ang = (len_store[vec_number][1] + len_store[vec_number][0])/2;
+                    std::cout << "hole size: "<<hole_size_final <<" sz: "<< vec_number <<std::endl;
+                    sz++;
+                    ang.fst = len_store[vec_number][0]; 
+                    ang.lst = len_store[vec_number][1];
                 }
             return ang;
+        }
+        int acc_direction(ray_len ang, const sensor_msgs::msg::LaserScan::SharedPtr msg){
+            int angle = 0;
+            float rr = msg->range_min;
+            for(int i = ang.fst; i<= ang.lst;i++){        
+                if(rr< msg->ranges[i] && msg->ranges[i] != INFINITY){
+                    rr = msg->ranges[i];
+                    angle = i;
+                }
+            }
+            return angle;
         }
         rclcpp::Publisher<geometry_msgs::msg::Twist>::SharedPtr Pub;
         rclcpp::Subscription<sensor_msgs::msg::LaserScan>::SharedPtr Sub;
