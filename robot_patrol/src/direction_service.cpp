@@ -30,8 +30,6 @@ class DirectionService :public rclcpp::Node{
         const std::shared_ptr<custom_interfaces::srv::GetDirection::Response> Res){
             
             Res->direction = find_direction(Req);
-
-
         }
 
         std::string find_direction(const std::shared_ptr<custom_interfaces::srv::GetDirection::Request> Req){
@@ -39,31 +37,35 @@ class DirectionService :public rclcpp::Node{
             total_dist_sec_right = 0.0 ;
             total_dist_sec_front = 0.0;
             total_dist_sec_left = 0.0;
+            float max = 0;
+            std::string direction;
             
             for(int i = 0; i<240;i++){
-                total_dist_sec_left += Req->laser_data.ranges[i];
+                total_dist_sec_right += Req->laser_data.ranges[i];
             }
             
-            float max = total_dist_sec_left;
-            std::string direction = "left";
-
             for(int i = 240; i<480;i++){
                 total_dist_sec_front += Req->laser_data.ranges[i];
             }
 
-            if (total_dist_sec_front > max) {
-                max = total_dist_sec_front;
-                direction = "forward";
-            }
-
             for(int i = 480; i<720;i++){
-                total_dist_sec_right += Req->laser_data.ranges[i];
+                total_dist_sec_left += Req->laser_data.ranges[i];
             }
 
             if (total_dist_sec_right > max) {
                 max = total_dist_sec_right;
                 direction = "right";
             }
+
+            if (total_dist_sec_front > max) {
+                max = total_dist_sec_front;
+                direction = "forward";
+            }
+            if (total_dist_sec_left > max) {
+                max = total_dist_sec_left;
+                direction = "left";
+            }
+
             return direction;
         }
 
