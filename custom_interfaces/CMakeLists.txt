@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.5)
-project(robot_patrol)
+project(custom_interfaces)
 
 # Default to C99
 if(NOT CMAKE_C_STANDARD)
@@ -18,10 +18,14 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(sensor_msgs REQUIRED)
-find_package(geometry_msgs REQUIRED)
-find_package(custom_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(rosidl_default_generators REQUIRED)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+  "srv/GetDirection.srv"
+  DEPENDENCIES std_msgs sensor_msgs #Remember to add it when you use other dependency in the file 
+)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -34,22 +38,6 @@ if(BUILD_TESTING)
   ament_lint_auto_find_test_dependencies()
 endif()
 
-add_executable(Direction_service_node src/direction_service.cpp)
-ament_target_dependencies(Direction_service_node rclcpp sensor_msgs geometry_msgs custom_interfaces std_msgs)
 
-add_executable(Move_turtlebot_node src/patrol.cpp)
-ament_target_dependencies(Move_turtlebot_node rclcpp sensor_msgs geometry_msgs)
-
-install(TARGETS
-   Move_turtlebot_node
-   Direction_service_node
-   DESTINATION lib/${PROJECT_NAME}
- )
-
-
-install(DIRECTORY
-  launch
-  DESTINATION share/${PROJECT_NAME}/
-)
 
 ament_package()
