@@ -37,12 +37,17 @@ endif()
 add_executable(Direction_service_node src/direction_service.cpp)
 ament_target_dependencies(Direction_service_node rclcpp sensor_msgs geometry_msgs custom_interfaces std_msgs)
 
+add_executable(Test_service_node src/test_service.cpp)
+ament_target_dependencies(Test_service_node rclcpp sensor_msgs geometry_msgs custom_interfaces std_msgs)
+
+
 add_executable(Move_turtlebot_node src/patrol.cpp)
 ament_target_dependencies(Move_turtlebot_node rclcpp sensor_msgs geometry_msgs)
 
 install(TARGETS
    Move_turtlebot_node
    Direction_service_node
+   Test_service_node
    DESTINATION lib/${PROJECT_NAME}
  )
 
