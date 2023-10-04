@@ -49,7 +49,7 @@ class DirectionService :public rclcpp::Node{
             int cal_right =0;
             int cal_front = 0;
             int cal_left = 0;
-            float threshold = 0.45;
+            float threshold = 0.4;
             response_struct resp;
             int consecutive_obstacle_left;
             int consecutive_obstacle_right;
