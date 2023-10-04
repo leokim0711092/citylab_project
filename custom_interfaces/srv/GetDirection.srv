@@ -1,3 +1,4 @@
 sensor_msgs/LaserScan laser_data
 ---
 string direction
+float32 proximity_scale

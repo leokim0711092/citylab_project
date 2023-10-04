@@ -28,7 +28,7 @@ class TurtleServiceClient: public rclcpp::Node{
 
             Pub = this ->create_publisher<geometry_msgs::msg::Twist>("cmd_vel",10);
             Sub = this-> create_subscription<sensor_msgs::msg::LaserScan>("scan",10,std::bind(&TurtleServiceClient::turtle_callback,this, std::placeholders::_1),sub1_);    
-            timer = this->create_wall_timer(std::chrono::milliseconds(100), std::bind(&TurtleServiceClient::timer_callback,this));
+            timer = this->create_wall_timer(std::chrono::milliseconds(180), std::bind(&TurtleServiceClient::timer_callback,this));
             client = this->create_client<custom_interfaces::srv::GetDirection>(
             "/direction_service");      
 
@@ -68,16 +68,16 @@ class TurtleServiceClient: public rclcpp::Node{
                 RCLCPP_INFO(this->get_logger(), "Recevied direction: %s", response->direction.c_str());
 
                 if (response->direction == "left") {
-                    vel.linear.x = 0.1;
+                    vel.linear.x = 0.1*response->proximity_scale;
                     vel.angular.z = 0.5;
                 }
 
                 if (response->direction == "forward") {
-                    vel.linear.x = 0.1;
+                    vel.linear.x = 0.1*response->proximity_scale;
                     vel.angular.z = 0;
                 }
                 if (response->direction == "right") {
-                    vel.linear.x = 0.1;
+                    vel.linear.x = 0.1*response->proximity_scale;
                     vel.angular.z = -0.5;
                 }
             }
