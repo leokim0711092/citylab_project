@@ -90,10 +90,11 @@ class GoToPose : public rclcpp::Node{
             float error_x = 0.0;
             float error_y = 0.0;
             float error_orient = 0.0;
-            vel.linear.x = 0.2;
+            
             goal->goal_pos.x;
             rclcpp::Rate lr(1);
-            float direction;
+            float direction = 0;
+            float rad_theta = 0;
 
             while (rclcpp::ok() && (!x_pos || !y_pos || !orient)) {
                 
@@ -102,26 +103,26 @@ class GoToPose : public rclcpp::Node{
                     RCLCPP_INFO(this->get_logger(), "Goal canceled");
                     return;
                 }
-            
+                
+                rad_theta =  goal->goal_pos.theta/180.0*M_PI;
+
                 error_x = std::fabs(goal->goal_pos.x - odom_msg->pose.pose.position.x)/goal->goal_pos.x;
                 error_y = std::fabs(goal->goal_pos.y - odom_msg->pose.pose.position.y)/goal->goal_pos.y;
-                error_orient = std::fabs(goal->goal_pos.theta - euler_degree_transform(odom_msg))/goal->goal_pos.theta;
+                error_orient = std::fabs(rad_theta - euler_degree_transform(odom_msg))/rad_theta;
 
-
+                direction = rad_theta - euler_degree_transform(odom_msg);
                 if (error_x < 0.1) {
                     x_pos = true;
                 }
-
                 if(error_y < 0.1){
                     y_pos =true;
                 }
-
                 if(error_orient < 0.1){
                     orient = true;
                 }
-                
-                direction = M_PI/2 - (euler_degree_transform(odom_msg)/180)*M_PI;
-                vel.angular.z = 0.5*direction;
+
+                determine_velocity(error_x, error_y, error_orient, direction);
+
                 feedback->current_pos.x = odom_msg->pose.pose.position.x;
                 feedback->current_pos.y = odom_msg->pose.pose.position.y;
                 feedback->current_pos.theta = euler_degree_transform(odom_msg);
@@ -154,7 +155,19 @@ class GoToPose : public rclcpp::Node{
             RCLCPP_INFO(this->get_logger(),"%f",vel.angular.z);
             pub_->publish(vel);
         }
-
+        
+        void determine_velocity(float error_x, float error_y, float error_orient, float direction){
+            if (error_x < 0.1 &&  ) {
+                x_pos = true;
+            }
+            if(error_y < 0.1){
+                y_pos =true;
+            }
+            if(error_orient < 0.1){
+                orient = true;
+            }
+        
+        }
 };
 
 int main(int argc, char** argv){

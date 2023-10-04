@@ -202,6 +202,7 @@ class DirectionService :public rclcpp::Node{
             std::cout << "right_avg: " << right_avg <<std::endl;
             std::cout << "front_avg: " << front_avg <<std::endl;
             std::cout << front_status.c_str()  << std::endl;  
+            
             return resp;
         }
 
