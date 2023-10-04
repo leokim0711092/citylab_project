@@ -21,10 +21,13 @@ find_package(rclcpp REQUIRED)
 find_package(std_msgs REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(rosidl_default_generators REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(action_msgs REQUIRED)
 
 rosidl_generate_interfaces(${PROJECT_NAME}
   "srv/GetDirection.srv"
-  DEPENDENCIES std_msgs sensor_msgs #Remember to add it when you use other dependency in the file 
+  "action/GoToPose.action"
+  DEPENDENCIES std_msgs sensor_msgs geometry_msgs #Remember to add it when you use other dependency in the file 
 )
 
 if(BUILD_TESTING)

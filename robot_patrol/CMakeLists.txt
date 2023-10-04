@@ -18,10 +18,12 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(rclcpp_action REQUIRED)
 find_package(sensor_msgs REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(custom_interfaces REQUIRED)
 find_package(std_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -46,11 +48,15 @@ ament_target_dependencies(Move_turtlebot_node rclcpp sensor_msgs geometry_msgs)
 add_executable(Robot_patrol_service_node src/patrol_with_service.cpp)
 ament_target_dependencies(Robot_patrol_service_node rclcpp sensor_msgs geometry_msgs custom_interfaces std_msgs)
 
+add_executable(Go_to_pose_node src/go_to_pose_action.cpp)
+ament_target_dependencies(Go_to_pose_node rclcpp rclcpp_action sensor_msgs geometry_msgs custom_interfaces std_msgs nav_msgs)
+
 install(TARGETS
    Move_turtlebot_node
    Direction_service_node
    Test_service_node
    Robot_patrol_service_node
+   Go_to_pose_node
    DESTINATION lib/${PROJECT_NAME}
  )
 
