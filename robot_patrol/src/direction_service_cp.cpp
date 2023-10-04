@@ -49,7 +49,7 @@ class DirectionService :public rclcpp::Node{
             int cal_right =0;
             int cal_front = 0;
             int cal_left = 0;
-            float threshold = 0.45;
+            float threshold = 0.35;
             response_struct resp;
             int consecutive_obstacle_left;
             int consecutive_obstacle_right;
@@ -57,11 +57,7 @@ class DirectionService :public rclcpp::Node{
             bool right = true;
             bool left = true;
             bool front = true;
-            int obstacle_size = 20;
-            float allow_maximum_speed_distance = 1.8;
-            float allow_maximum_speed_distance_front = 1;
-            bool determine_left = true;   
-            bool determine_right = true;
+            int obstacle_size = 10;
 
             for(int i = 0 ; i<240;i++){
 
@@ -115,93 +111,66 @@ class DirectionService :public rclcpp::Node{
             float front_avg = cal_front>0 ? total_dist_sec_front/cal_front : 0;
             float right_avg = cal_right>0 ? total_dist_sec_right/cal_right : 0;
 
-            // Right, Left and Front have no obstacles
-            if( right && left && front){
+            
+            if( right && left ){
                 if (left_avg > right_avg && left_avg > front_avg) {
                     resp.direction = "left";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
+                    // resp.proximity_scale = std::min(std::min(std::min(left_avg, right_avg), front_avg), 0.5f) / 0.5f;
+                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), 0.5f) / 0.5; 
                 }else if (front_avg > right_avg && front_avg > left_avg) {
                     resp.direction = "forward";
-                    resp.proximity_scale = front_avg/allow_maximum_speed_distance_front ;
+                    resp.proximity_scale = front_avg/1.5f ;
+
                 }else{
                     resp.direction = "right";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
+                    // resp.proximity_scale = std::min(std::min(std::min(left_avg, right_avg), front_avg), 0.5f) / 0.5f;
+                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), 0.5f) / 0.5;
                 }
                 std::cout << "left and right are open" <<std::endl;
-
-            // Left and Front have no obstacle
-            }else if (left && !right && front) {
-
+            }else if (left && !right) {
                  if (left_avg > front_avg) {
                     resp.direction = "left";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg),allow_maximum_speed_distance) / allow_maximum_speed_distance;
-
+                    // resp.proximity_scale = std::min(std::min(std::min(left_avg, right_avg), front_avg), 0.5f) / 0.5f;
+                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), 0.5f) / 0.5;
                 }else if (front_avg > left_avg) {
                     resp.direction = "forward";
-                    resp.proximity_scale = front_avg/allow_maximum_speed_distance_front ;
+                    resp.proximity_scale = front_avg/1.5f ;
                 }
-                std::cout << "left and front are open, right is not" <<std::endl;
-            // Left have no obstacle
-            }else if (left && !right && !front) {
-                    resp.direction = "left";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
-                    std::cout << "left is open, right and front are not" <<std::endl;
-            // Right and Front have no obstacle
-            }else if (right && !left && front) {
+                std::cout << "left is open and right is not" <<std::endl;
+
+            }else if (right && !left) {
                 if(front_avg > right_avg) {
                     resp.direction = "forward";
-                    resp.proximity_scale = front_avg/allow_maximum_speed_distance_front ;
+                    resp.proximity_scale = front_avg/1.5f ;
+
                 }else{
                     resp.direction = "right";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
+                    // resp.proximity_scale = std::min(std::min(std::min(left_avg, right_avg), front_avg), 0.5f) / 0.5f;.
+                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), 0.5f) / 0.5;
                 }
-                std::cout << "right and front are open, left is not" <<std::endl;
-            //Right have no obstacle
-            }else if (right && !left && !front) {
-                    resp.direction = "right";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
-                    std::cout << "right is open, left and front are not" <<std::endl;
-            //Front have no obstacle
+                std::cout << "right is open and left is not" <<std::endl;
+
             }else if (!right && !left && front) {
                     resp.direction = "forward";
-                    resp.proximity_scale = front_avg/allow_maximum_speed_distance_front ;
+                    resp.proximity_scale = front_avg/1.5f ;
                     std::cout << "both of right and left are not open, but front is open" <<std::endl;
-            
-            //Three direction have obstacle or only front have obstacle
-            }else if ((!right && !left && !front)) {
+                    
+            }else if (!right && !left && !front ) {
                 if (left_avg > right_avg ) {
                     resp.direction = "left";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
+                    // resp.proximity_scale = std::min(std::min(std::min(left_avg, right_avg), front_avg), 0.5f) / 0.5f;
+                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), 0.5f) / 0.5;
+
                 }else if (right_avg > left_avg ) {
                     resp.direction = "right";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
+                    // resp.proximity_scale = std::min(std::min(std::min(left_avg, right_avg), front_avg), 0.5f) / 0.5f;
+                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), 0.5f) / 0.5;
                 }
                 std::cout << "both of right, left and front are not open, choose one way to go  " <<resp.direction.c_str() <<std::endl;
-            }else if ((right && left && !front) ) {
-                if (left_avg > right_avg && determine_left ) {
-                    resp.direction = "left";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
-                    determine_right = false;
-                }else if (right_avg > left_avg && determine_right) {
-                    resp.direction = "right";
-                    resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
-                    determine_right = true;
-                }
-                std::cout << "both of right and left are open, but front is not open" <<std::endl;
             }
-            
-            if(!(right && left && !front)) {
-                determine_left = true ;
-                determine_right = true;
-            }
-
-            std::string front_status = front == true ? "true" : "false";
 
             std::cout << resp.proximity_scale <<std::endl;
-            std::cout << "left_avg: " << left_avg <<std::endl;
-            std::cout << "right_avg: " << right_avg <<std::endl;
-            std::cout << "front_avg: " << front_avg <<std::endl;
-            std::cout << front_status.c_str()  << std::endl;  
+
             return resp;
         }
 

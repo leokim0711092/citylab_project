@@ -87,7 +87,7 @@ class TurtleServiceClient: public rclcpp::Node{
         }
 
         void timer_callback(){
-            RCLCPP_INFO(this->get_logger(),"%f",vel.angular.z);
+            RCLCPP_INFO(this->get_logger(),"%f",vel.linear.x);
             Pub->publish(vel);
         }
 
