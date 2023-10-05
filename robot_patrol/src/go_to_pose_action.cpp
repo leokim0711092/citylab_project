@@ -13,6 +13,7 @@
 #include "rclcpp_action/create_server.hpp"
 #include "rclcpp_action/server.hpp"
 #include "rclcpp_action/types.hpp"
+#include <algorithm>
 #include <functional>
 #include <memory>
 #include <rclcpp/rclcpp.hpp>
@@ -23,6 +24,7 @@
 #include <geometry_msgs/msg/twist.hpp>
 #include <thread>
 #include <cmath>
+#include <math.h>
 
 using namespace std::placeholders;
 
@@ -106,22 +108,31 @@ class GoToPose : public rclcpp::Node{
                 
                 rad_theta =  goal->goal_pos.theta/180.0*M_PI;
 
-                error_x = std::fabs(goal->goal_pos.x - odom_msg->pose.pose.position.x)/goal->goal_pos.x;
-                error_y = std::fabs(goal->goal_pos.y - odom_msg->pose.pose.position.y)/goal->goal_pos.y;
-                error_orient = std::fabs(rad_theta - euler_degree_transform(odom_msg))/rad_theta;
+                error_x = std::fabs(goal->goal_pos.x - odom_msg->pose.pose.position.x);
+                error_y = std::fabs(goal->goal_pos.y - odom_msg->pose.pose.position.y);
+                error_orient = std::fabs(rad_theta - euler_degree_transform(odom_msg));
 
-                direction = rad_theta - euler_degree_transform(odom_msg);
-                if (error_x < 0.1) {
+                if (error_x < 0.05) {
                     x_pos = true;
-                }
-                if(error_y < 0.1){
-                    y_pos =true;
-                }
-                if(error_orient < 0.1){
-                    orient = true;
+                    if(x_pos) std::cout << "X_pos: true" <<std::endl;
                 }
 
-                determine_velocity(error_x, error_y, error_orient, direction);
+                if(error_y < 0.05){
+                    y_pos =true;
+                    if(y_pos) std::cout << "Y_pos: true" <<std::endl;
+                }
+                if(error_orient < 0.05){
+                    orient = true;
+                    if(orient) std::cout << "Orient_pos: true" <<std::endl;
+                }
+                
+                direction = rad_theta - euler_degree_transform(odom_msg);
+                determine_velocity(error_x, error_y, error_orient, direction, goal_handle);
+                
+                if(x_pos && y_pos && orient){
+                    vel.linear.x = 0;
+                    vel.angular.z = 0;
+                }
 
                 feedback->current_pos.x = odom_msg->pose.pose.position.x;
                 feedback->current_pos.y = odom_msg->pose.pose.position.y;
@@ -156,15 +167,22 @@ class GoToPose : public rclcpp::Node{
             pub_->publish(vel);
         }
         
-        void determine_velocity(float error_x, float error_y, float error_orient, float direction){
-            if (error_x < 0.1 &&  ) {
-                x_pos = true;
+        void determine_velocity(float error_x, float error_y, float error_orient, float direction, const std::shared_ptr<GoalHandleGTP> goal_handle){
+            const auto goal = goal_handle->get_goal();
+            bool orient_avaliable = false;
+            float dir_of_xy = 0;
+            float dist_diff =0;
+            if (error_x < 0.05 && error_y < 0.05 ) {
+                orient_avaliable = true;
+            }else {
+                dir_of_xy = atan2(goal->goal_pos.y - odom_msg->pose.pose.position.y, goal->goal_pos.x - odom_msg->pose.pose.position.x);
+                dist_diff = std::sqrt(std::pow(goal->goal_pos.y - odom_msg->pose.pose.position.y,2) + std::pow(goal->goal_pos.x - odom_msg->pose.pose.position.x,2));
+                vel.angular.z  = dir_of_xy*0.5;
+                vel.linear.x =  0.2 * std::min(dist_diff, 0.4f)/0.4f;
             }
-            if(error_y < 0.1){
-                y_pos =true;
-            }
-            if(error_orient < 0.1){
-                orient = true;
+            if(error_orient > 0.05 && orient_avaliable ){
+                vel.linear.x = 0;
+                vel.angular.z = direction*0.5;
             }
         
         }
