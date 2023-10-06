@@ -58,13 +58,13 @@ class DirectionService :public rclcpp::Node{
             bool left = true;
             bool front = true;
             int obstacle_size = 18;
-            int front_obstacle_size = 8;
+            int front_obstacle_size = 5;
             float allow_maximum_speed_distance = 1.6;
             float allow_maximum_speed_distance_front = 1;
             bool determine_left = true;   
             bool determine_right = true;
 
-            for(int i = 0 ; i<300;i++){
+            for(int i = 0 ; i<310;i++){
 
                 if(!std::isinf(Req->laser_data.ranges[i])){
                 total_dist_sec_right += Req->laser_data.ranges[i]; 
@@ -80,7 +80,7 @@ class DirectionService :public rclcpp::Node{
                 }
             }
             
-            for(int i = 300; i<420;i++){
+            for(int i = 310; i<410;i++){
                 if(!std::isinf(Req->laser_data.ranges[i])){
                 total_dist_sec_front += Req->laser_data.ranges[i]; 
                 cal_front++;
@@ -95,7 +95,7 @@ class DirectionService :public rclcpp::Node{
                 }
             }
 
-            for(int i = 420; i<720;i++){
+            for(int i = 410; i<720;i++){
                 if(!std::isinf(Req->laser_data.ranges[i])){
                 total_dist_sec_left += Req->laser_data.ranges[i]; 
                 cal_left++;
