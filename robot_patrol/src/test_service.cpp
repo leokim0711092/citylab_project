@@ -51,9 +51,9 @@ class TestClient : public rclcpp::Node {
             // std::shared_ptr<custom_interfaces::srv::GetDirection::Request> request;
             auto request =std::make_shared<custom_interfaces::srv::GetDirection::Request>();
             request->laser_data = *msg;
-
             client->async_send_request(request, std::bind(&TestClient::service_response, this, std::placeholders::_1));
         }
+
         void service_response(rclcpp::Client<custom_interfaces::srv::GetDirection>::SharedFuture fut){
             auto status = fut.wait_for(std::chrono::seconds(1));
             if(status == std::future_status::ready){

@@ -163,7 +163,8 @@ class GoToPose : public rclcpp::Node{
         }
 
         void timer_callback(){
-            RCLCPP_INFO(this->get_logger(),"%f",vel.angular.z);
+            RCLCPP_INFO(this->get_logger(),"Z : %f",vel.angular.z);
+            RCLCPP_INFO(this->get_logger(),"X : %f",vel.linear.x);
             pub_->publish(vel);
         }
         
@@ -172,17 +173,31 @@ class GoToPose : public rclcpp::Node{
             bool orient_avaliable = false;
             float dir_of_xy = 0;
             float dist_diff =0;
+            float diff_x = goal->goal_pos.x - odom_msg->pose.pose.position.x;
+            float diff_y = goal->goal_pos.y - odom_msg->pose.pose.position.y;
             if (error_x < 0.05 && error_y < 0.05 ) {
                 orient_avaliable = true;
             }else {
-                dir_of_xy = atan2(goal->goal_pos.y - odom_msg->pose.pose.position.y, goal->goal_pos.x - odom_msg->pose.pose.position.x);
+
+                if(diff_x > 0 && diff_y > 0) dir_of_xy = atan2(error_y, error_x) - euler_degree_transform(odom_msg);
+                else if (diff_x > 0 && diff_y < 0) dir_of_xy = (atan2(error_y, error_x)*-1) - euler_degree_transform(odom_msg);
+                else if (diff_x < 0 && diff_y > 0) dir_of_xy = (atan2(error_x, error_y) + 1.57) - euler_degree_transform(odom_msg);
+                else dir_of_xy = ((atan2(error_x, error_y)*-1) - 1.57) - euler_degree_transform(odom_msg);
+                if(dir_of_xy >3.14 || dir_of_xy < -3.14 ){
+                    dir_of_xy = dir_of_xy*-1;
+                }
                 dist_diff = std::sqrt(std::pow(goal->goal_pos.y - odom_msg->pose.pose.position.y,2) + std::pow(goal->goal_pos.x - odom_msg->pose.pose.position.x,2));
                 vel.angular.z  = dir_of_xy*0.5;
-                vel.linear.x =  0.2 * std::min(dist_diff, 0.4f)/0.4f;
+                if (vel.angular.z > 0.45) vel.angular.z = 0.45;
+                if (vel.angular.z < -0.45)vel.angular.z = -0.45;
+
+                vel.linear.x =  0.15 * std::min(dist_diff, 0.4f)/0.4f;
             }
             if(error_orient > 0.05 && orient_avaliable ){
                 vel.linear.x = 0;
                 vel.angular.z = direction*0.5;
+                if (vel.angular.z > 0.45) vel.angular.z = 0.45;
+                if (vel.angular.z < -0.45)vel.angular.z = -0.45;
             }
         
         }

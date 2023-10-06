@@ -57,13 +57,14 @@ class DirectionService :public rclcpp::Node{
             bool right = true;
             bool left = true;
             bool front = true;
-            int obstacle_size = 20;
-            float allow_maximum_speed_distance = 1.8;
+            int obstacle_size = 18;
+            int front_obstacle_size = 8;
+            float allow_maximum_speed_distance = 1.6;
             float allow_maximum_speed_distance_front = 1;
             bool determine_left = true;   
             bool determine_right = true;
 
-            for(int i = 0 ; i<240;i++){
+            for(int i = 0 ; i<300;i++){
 
                 if(!std::isinf(Req->laser_data.ranges[i])){
                 total_dist_sec_right += Req->laser_data.ranges[i]; 
@@ -79,14 +80,14 @@ class DirectionService :public rclcpp::Node{
                 }
             }
             
-            for(int i = 240; i<480;i++){
+            for(int i = 300; i<420;i++){
                 if(!std::isinf(Req->laser_data.ranges[i])){
                 total_dist_sec_front += Req->laser_data.ranges[i]; 
                 cal_front++;
                 }
                 if (Req->laser_data.ranges[i] < threshold) {
                     consecutive_obstacle_front++;
-                    if (consecutive_obstacle_front >= obstacle_size) {
+                    if (consecutive_obstacle_front >= front_obstacle_size) {
                         front = false;
                     }
                 }else {
@@ -94,7 +95,7 @@ class DirectionService :public rclcpp::Node{
                 }
             }
 
-            for(int i = 480; i<720;i++){
+            for(int i = 420; i<720;i++){
                 if(!std::isinf(Req->laser_data.ranges[i])){
                 total_dist_sec_left += Req->laser_data.ranges[i]; 
                 cal_left++;
@@ -127,7 +128,7 @@ class DirectionService :public rclcpp::Node{
                     resp.direction = "right";
                     resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
                 }
-                std::cout << "left and right are open" <<std::endl;
+                std::cout << "left and right and forward are open" <<std::endl;
 
             // Left and Front have no obstacle
             }else if (left && !right && front) {
@@ -185,7 +186,7 @@ class DirectionService :public rclcpp::Node{
                 }else if (right_avg > left_avg && determine_right) {
                     resp.direction = "right";
                     resp.proximity_scale = std::min(std::min(left_avg, right_avg), allow_maximum_speed_distance) / allow_maximum_speed_distance;
-                    determine_right = true;
+                    determine_left = false;
                 }
                 std::cout << "both of right and left are open, but front is not open" <<std::endl;
             }
